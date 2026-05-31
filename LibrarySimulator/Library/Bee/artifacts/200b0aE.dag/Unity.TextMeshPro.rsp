@@ -400,6 +400,7 @@
 -r:"/Applications/Unity/Hub/Editor/6000.4.9f1/Unity.app/Contents/Resources/Scripting/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XmlDocument.dll"
 -r:"/Applications/Unity/Hub/Editor/6000.4.9f1/Unity.app/Contents/Resources/Scripting/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XmlSerializer.dll"
 -r:"/Applications/Unity/Hub/Editor/6000.4.9f1/Unity.app/Contents/Resources/Scripting/NetStandard/ref/2.1.0/netstandard.dll"
+-r:"Library/PackageCache/com.unity.ext.nunit@d8c07649098d/net40/unity-custom/nunit.framework.dll"
 -r:"Library/Bee/artifacts/200b0aE.dag/Unity.InternalAPIEngineBridge.004.ref.dll"
 -r:"Library/Bee/artifacts/200b0aE.dag/UnityEditor.UI.ref.dll"
 -r:"Library/Bee/artifacts/200b0aE.dag/UnityEngine.UI.ref.dll"

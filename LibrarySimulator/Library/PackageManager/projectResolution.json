@@ -301,6 +301,26 @@
       "source": "builtin",
       "testable": false
     },
+    "com.unity.test-framework@1.6.0": {
+      "name": "com.unity.test-framework",
+      "displayName": "Test Framework",
+      "resolvedPath": "/Users/ericjernigan/Projects/cog/cog-demo/LibrarySimulator/Library/PackageCache/com.unity.test-framework@76560ee600cb",
+      "fingerprint": "76560ee600cb07c29e08760be4a5c75da65a9d9e",
+      "editorCompatibility": "6000.0.44f1",
+      "version": "1.6.0",
+      "source": "builtin",
+      "testable": false
+    },
+    "com.unity.ext.nunit@2.0.5": {
+      "name": "com.unity.ext.nunit",
+      "displayName": "Custom NUnit",
+      "resolvedPath": "/Users/ericjernigan/Projects/cog/cog-demo/LibrarySimulator/Library/PackageCache/com.unity.ext.nunit@d8c07649098d",
+      "fingerprint": "d8c07649098d3936da4c8ab500960c1776b44592",
+      "editorCompatibility": "2019.4.0a1",
+      "version": "2.0.5",
+      "source": "builtin",
+      "testable": false
+    },
     "com.unity.ugui@2.0.0": {
       "name": "com.unity.ugui",
       "displayName": "uGUI",
