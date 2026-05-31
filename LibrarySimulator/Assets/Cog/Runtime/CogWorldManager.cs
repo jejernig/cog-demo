@@ -82,20 +82,95 @@ namespace Cog
         {
             totalDecisions++;
 
-            // v0.5: calls native engine via FFI
-            // For now, returns a placeholder — real impl calls cog_tick()
-            await Task.Delay(100); // simulate async work
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                Debug.LogWarning("[Cog] No API key set. Using stub responses. Set apiKey in CogWorldManager inspector.");
+                return StubResponse(npcId, profile);
+            }
 
+            try
+            {
+                var systemPrompt = profile != null ? profile.BuildSystemPrompt() 
+                    : $"You are {npcId}, an AI coworker in a library. Be helpful and concise.";
+
+                var userPrompt = $"Recent observations:\n{context}\n\n" +
+                    "Based on what you've observed, should you speak or act? " +
+                    "Respond with JSON: {\"text\": \"what you say\", \"emotion\": \"neutral|happy|annoyed|confused|excited\", \"intensity\": 1-5}";
+
+                var requestBody = JsonUtility.ToJson(new LlmRequest
+                {
+                    model = modelTier switch { "premium" => "gpt-4o", _ => "gpt-4.1-nano" },
+                    messages = new[] {
+                        new LlmMessage { role = "system", content = systemPrompt },
+                        new LlmMessage { role = "user", content = userPrompt }
+                    },
+                    max_tokens = 150,
+                    temperature = 0.7f
+                });
+
+                using var www = UnityEngine.Networking.UnityWebRequest.Post(
+                    "https://api.openai.com/v1/chat/completions", requestBody, "application/json");
+                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+                www.timeout = 15;
+
+                var op = www.SendWebRequest();
+                while (!op.isDone) await Task.Yield();
+
+                if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                {
+                    Debug.LogWarning($"[Cog] LLM API error: {www.error}");
+                    return StubResponse(npcId, profile);
+                }
+
+                var response = JsonUtility.FromJson<LlmResponse>(www.downloadHandler.text);
+                var content = response.choices?[0]?.message?.content ?? "";
+
+                // Parse JSON from LLM response
+                try { return JsonUtility.FromJson<LlmAgentEvent>(content).ToAgentEvent(npcId, profile?.npcName ?? npcId); }
+                catch { /* fall through to raw text */ }
+
+                return new AgentEvent
+                {
+                    npcId = npcId,
+                    npcName = profile?.npcName ?? npcId,
+                    text = content.Trim(),
+                    emotion = "neutral",
+                    targetNpcId = null,
+                    intensity = 2
+                };
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[Cog] LLM exception: {e.Message}");
+                return StubResponse(npcId, profile);
+            }
+        }
+
+        AgentEvent StubResponse(string npcId, CogPersonalityProfile profile)
+        {
             return new AgentEvent
             {
                 npcId = npcId,
                 npcName = profile?.npcName ?? npcId,
-                text = $"[{npcId}] Observed: {context[..Mathf.Min(context.Length, 80)]}...",
+                text = npcId switch
+                {
+                    "archibald" => "One must consider the Dewey Decimal classification for this volume.",
+                    "maggie" => "Honey, that book belongs where folks will actually find it.",
+                    "finn" => "ACTUALLY, this is part of a larger literary universe!",
+                    _ => "Interesting choice of placement."
+                },
                 emotion = "neutral",
                 targetNpcId = null,
-                intensity = 1f
+                intensity = 2
             };
         }
+
+        [System.Serializable] class LlmRequest { public string model; public LlmMessage[] messages; public int max_tokens; public float temperature; }
+        [System.Serializable] class LlmMessage { public string role; public string content; }
+        [System.Serializable] class LlmResponse { public LlmChoice[] choices; }
+        [System.Serializable] class LlmChoice { public LlmMessage message; }
+        [System.Serializable] class LlmAgentEvent { public string text; public string emotion; public int intensity;
+            public AgentEvent ToAgentEvent(string id, string name) => new() { npcId=id, npcName=name, text=text, emotion=emotion??"neutral", intensity=intensity }; }
 
         /// <summary>Get all registered NPCs.</summary>
         public IReadOnlyDictionary<string, CogNPC> GetNpcs() => npcs;
